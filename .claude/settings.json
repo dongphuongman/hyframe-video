@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "PowerShell(gh repo view dongphuongman/hyframe-video --json name,visibility,licenseInfo,url 2>&1)",
+      "Bash(curl -s https://api.github.com/repos/dongphuongman/hyframe-video)",
+      "Bash(curl -s https://api.github.com/repos/dongphuongman/hyframe-video/license)",
+      "Bash(curl -s \"https://img.shields.io/github/license/dongphuongman/hyframe-video?style=for-the-badge&color=green\")"
     ]
   }
 }
