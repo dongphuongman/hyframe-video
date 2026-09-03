@@ -6,7 +6,7 @@
 
 ### 🚀 Biến URL bài báo & Repo GitHub thành Video ngắn 9:16 chuyên nghiệp
 
-**1 câu lệnh với Antigravity AI Agent · 0đ Voice (Edge TTS) · Không cần edit thủ công · Sẵn sàng đăng TikTok, Reels, Shorts**
+**1 câu lệnh với AI Coding· 0đ Voice (Edge TTS) · Không cần edit thủ công · Sẵn sàng đăng TikTok, Reels, Shorts**
 
 [![Stars](https://img.shields.io/github/stars/dongphuongman/hyframe-video?style=for-the-badge&logo=github&color=yellow)](https://github.com/dongphuongman/hyframe-video/stargazers)
 [![Forks](https://img.shields.io/github/forks/dongphuongman/hyframe-video?style=for-the-badge&logo=github&color=blue)](https://github.com/dongphuongman/hyframe-video/network/members)
