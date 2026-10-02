@@ -52,13 +52,15 @@ Following the schema in `docs/superpowers/specs/2026-04-29-auto-news-video-desig
 
 **Script content (Vietnamese):**
 - Total voiceText: ~150–200 words → ~55–65s spoken at speed 1.0
+- **VieNeu local reads ~30% faster** than Edge/LucyLab: when `TTS_PROVIDER=vieneu-local`,
+  write **~200–250 words** instead (add ~1 extra sentence per body scene) to hit the same ~55–65s
 - Number of scenes: **5–8** (1 hook + 3–6 body + 1 outro)
 - Each scene voiceText is 1-3 short sentences, văn nói (spoken style, not formal)
 - No emoji, no markdown in voiceText
 
 ### ⚠️ CRITICAL: Vietnamese TTS Phonetic Rules
 
-The `voiceText` field is read aloud by LucyLab/ElevenLabs Vietnamese TTS. **Numbers and symbols are read literally** — if you write "5.5", TTS may say "năm rưỡi" (five and a half — WRONG for version numbers). **Always spell out numbers in Vietnamese phonetic form** in `voiceText`. The `templateData` fields (visual text on screen) can keep the original "5.5" / "82.7%" formatting.
+The `voiceText` field is read aloud by Vietnamese TTS (Edge / LucyLab / VieNeu cloud+local / ElevenLabs / Vbee). **Numbers and symbols are read literally** — if you write "5.5", TTS may say "năm rưỡi" (five and a half — WRONG for version numbers). **Always spell out numbers in Vietnamese phonetic form** in `voiceText`. The `templateData` fields (visual text on screen) can keep the original "5.5" / "82.7%" formatting.
 
 **Mandatory rules for `voiceText`:**
 
@@ -144,7 +146,7 @@ RIGHT (natural):
 {
   "id": "outro",
   "type": "outro",
-  "voiceText": "Theo dõi ĐôngIT để xem bản tin mới mỗi ngày.",
+  "voiceText": "Theo dõi <CHANNEL SPOKEN> để xem bản tin mới mỗi ngày.",
   "visual": {
     "background": { "type": "gradient", "preset": "outro-purple" },
     "text": {
@@ -152,14 +154,14 @@ RIGHT (natural):
       "style": "outro-card",
       "lines": [
         { "content": "Xem bản tin mới mỗi ngày", "emphasis": "primary", "animation": "fade-in" },
-        { "content": "ĐôngIT",            "emphasis": "channel", "animation": "scale-pop" },
+        { "content": "<CHANNEL>",            "emphasis": "channel", "animation": "scale-pop" },
         { "content": "Nguồn: <DOMAIN>",          "emphasis": "muted",   "animation": "fade-in-late" }
       ]
     }
   }
 }
 ```
-Replace `<DOMAIN>` with the actual domain string. Note: outro line 1 is shortened to fit 25-char schema rule (full CTA "Theo dõi để xem bản tin mới mỗi ngày" is 36 chars).
+Replace `<DOMAIN>` with the actual domain string, and `<CHANNEL>` with `script.metadata.channel` (same value in the CTA line and the `voiceText` — spell the channel name phonetically per the TTS rules above, e.g. `Đông ai ti`). Note: outro line 1 is shortened to fit 25-char schema rule (full CTA "Theo dõi để xem bản tin mới mỗi ngày" is 36 chars).
 
 ### Step 5: Self-validate before writing
 
@@ -185,6 +187,12 @@ Use Bash, **foreground** (not background), stream output:
 npm run pipeline -- <outputDir>/script.json
 ```
 
+Useful flags (all optional):
+- `--draft` — fast preview render (~3x faster, lower quality, for checking layout)
+- `--handle @mybrand --display-name "My Brand"` — override TikTok card without editing `.env.local`
+- `--no-branding` — hide TikTok follow card + handle entirely
+- `--no-compress` — skip the `video.tiktok.mp4` compress step
+
 If exit code != 0:
 - Report the error message clearly
 - Tell user the output dir path so they can inspect intermediate files
@@ -204,7 +212,7 @@ Write a short Vietnamese caption + exactly 4 hashtags for the video, based on `s
 **Hashtag rules — exactly 4, in this order:**
 1. One broad tech/niche tag in Vietnamese (e.g. `#congnghe`, `#thutthuat`)
 2. One or two tags specific to the video's actual topic/product/company (e.g. `#openai`, `#ai`, `#pdf`, `#codegraph` — derive from the subject, don't reuse the same generic tag twice)
-3. One channel/discovery tag: `#dongphuongman` (and `#fyp` or `#xuhuong` if there's room — still capped at 4 total)
+3. One channel/discovery tag: derive from `script.metadata.channel` (lowercase, strip diacritics/spaces, e.g. channel "Đông Mẫn Phương" → `#dongphuongman`), plus `#fyp` or `#xuhuong` if there's room — still capped at 4 total
 - Lowercase, no spaces, no punctuation inside a tag.
 - Skip hashtags that don't genuinely fit the topic just to hit the count differently — 4 relevant tags beats 4 generic ones.
 
@@ -220,7 +228,8 @@ Write the result to `<outputDir>/caption.txt` using the Write tool, formatted as
 If successful, report to user with markdown links:
 
 ```markdown
-✓ Video:   [video.mp4](output/<slug>-<timestamp>/video.mp4)
+✓ Video:   [video.mp4](output/<slug>-<timestamp>/video.mp4) (raw, large)
+✓ TikTok:  [video.tiktok.mp4](output/<slug>-<timestamp>/video.tiktok.mp4) — upload this one
 ✓ Audio:   [voice.mp3](output/<slug>-<timestamp>/voice.mp3) — for CapCut
 ✓ Script:  [script.txt](output/<slug>-<timestamp>/script.txt) — for CapCut auto-caption
 ✓ Caption: [caption.txt](output/<slug>-<timestamp>/caption.txt) — for TikTok upload

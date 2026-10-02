@@ -13,6 +13,9 @@ import { indexSfxLibrary, pickSfxForScene, defaultPlayback } from "./src/assets/
 import { existsSync } from "node:fs";
 import { composeHtml } from "./src/render/html-composer.js";
 import { renderWithHyperframes } from "./src/render/hyperframes-runner.js";
+import { compressForTiktok, formatMB } from "./src/assets/video-tools.js";
+
+// Usage: npx tsx rerender.ts <outputDir> [--draft] [--no-compress] [--no-branding]
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TPL_DIR = join(__dirname, "src", "render", "templates");
@@ -27,10 +30,14 @@ const HYPERFRAMES_CONFIG = {
 
 async function main() {
   const outputDir = process.argv[2];
-  if (!outputDir) {
-    console.error("Usage: npx tsx rerender.ts <outputDir>");
+  if (!outputDir || outputDir.startsWith("--")) {
+    console.error("Usage: npx tsx rerender.ts <outputDir> [--draft] [--no-compress] [--no-branding]");
     process.exit(2);
   }
+  const flags = process.argv.slice(3);
+  if (flags.includes("--draft")) process.env.RENDER_QUALITY = "draft";
+  if (flags.includes("--no-compress")) process.env.TIKTOK_COMPRESS = "false";
+  if (flags.includes("--no-branding")) process.env.TIKTOK_BRANDING = "false";
 
   const cfg = loadConfig();
   console.log(`Re-rendering: ${outputDir}`);
@@ -42,6 +49,8 @@ async function main() {
       cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
       : cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
       : cfg.ttsProvider === "elevenlabs" ? cfg.elevenlabsVoiceId!
+      : cfg.ttsProvider === "vieneu" ? cfg.vieneuVoiceId
+      : cfg.ttsProvider === "vieneu-local" ? cfg.vieneuLocalVoice
       : cfg.vbeeVoiceCode;
   }
   const script = ScriptSchema.parse(raw);
@@ -101,10 +110,14 @@ async function main() {
   const totalDur = await getDurationSec(voiceMp3);
   console.log(`voice.mp3 total: ${totalDur.toFixed(2)}s`);
 
-  // Determine bg image
-  const bgImagePath = join(outputDir, "images", "bg.jpg");
-  const fs = await import("node:fs");
-  const bgImageRelPath = fs.existsSync(bgImagePath) ? "images/bg.jpg" : null;
+  // Determine bg image (any extension — fetchImage corrects it from content-type)
+  const { readdirSync } = await import("node:fs");
+  const imgDir = join(outputDir, "images");
+  let bgImageRelPath: string | null = null;
+  try {
+    const hit = readdirSync(imgDir).find((f) => /^bg\.(jpe?g|png|webp|gif)$/i.test(f));
+    if (hit) bgImageRelPath = `images/${hit}`;
+  } catch { /* no images dir */ }
   console.log(`bgImage: ${bgImageRelPath ?? "(none — gradient fallback)"}`);
 
   // TikTok avatar — find bundled (jpg/jpeg/png/webp) and copy to output dir
@@ -140,13 +153,27 @@ async function main() {
     name: script.metadata.title,
     createdAt: new Date().toISOString(),
   }, null, 2));
-  await copyFile(join(TPL_DIR, "styles.css"),    join(outputDir, "styles.css"));
+  const themeFile = cfg.videoTheme === "light-pro" ? "styles.light-pro.css" : "styles.css";
+  await copyFile(join(TPL_DIR, themeFile), join(outputDir, "styles.css"));
   await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
 
   // Render
   const videoPath = join(outputDir, "video.mp4");
-  await renderWithHyperframes({ compositionDir: outputDir, outputPath: videoPath });
+  await renderWithHyperframes({
+    compositionDir: outputDir,
+    outputPath: videoPath,
+    fps: cfg.videoFps,
+    quality: cfg.renderQuality,
+    crf: cfg.videoCrf,
+    workers: cfg.renderWorkers,
+  });
   console.log(`\nDone: ${videoPath}`);
+
+  if (cfg.tiktokCompress) {
+    const tiktokPath = join(outputDir, "video.tiktok.mp4");
+    const r = await compressForTiktok(videoPath, tiktokPath, cfg.tiktokCrf);
+    console.log(`TikTok: ${tiktokPath} (${formatMB(r.rawBytes)} → ${formatMB(r.outBytes)})`);
+  }
 }
 
 main().catch((e) => { console.error("Re-render failed:", e); process.exit(1); });

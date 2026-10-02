@@ -8,47 +8,32 @@
 
 **1 câu lệnh với AI Coding· 0đ Voice (Edge TTS) · Không cần edit thủ công · Sẵn sàng đăng TikTok, Reels, Shorts**
 
-[![Stars](https://img.shields.io/github/stars/dongphuongman/hyframe-video?style=for-the-badge&logo=github&color=yellow)](https://github.com/dongphuongman/hyframe-video/stargazers)
-[![Forks](https://img.shields.io/github/forks/dongphuongman/hyframe-video?style=for-the-badge&logo=github&color=blue)](https://github.com/dongphuongman/hyframe-video/network/members)
-[![License](https://img.shields.io/github/license/dongphuongman/hyframe-video?style=for-the-badge&color=green)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Node](https://img.shields.io/badge/node-22%2B-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-5%2B-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-[**📖 Tài liệu chi tiết (Full Docs)**](README.full.md) · [**🇬🇧 English Docs**](README.en.md) · [**📺 Xem Demo**](https://youtube.com/shorts/X8P_5tsHy4o) · [**🚀 Cài đặt nhanh**](#-bắt-đầu-nhanh-3-bước) · [**💬 Cộng đồng**](#-cộng-đồng--các-mẫu-tạo-video-khác)
+[**🚀 Cài đặt nhanh**](#-bắt-đầu-nhanh-3-bước)
 
 </div>
 
-> 💡 **Bạn cần tài liệu chuyên sâu?**
-> Bản README này tóm tắt nhanh để bạn có thể bắt đầu tạo video trong 5 phút. Để xem đầy đủ kiến trúc, JSON Schema kịch bản, bảng tính chi phí và hướng dẫn nâng cao, vui lòng xem [👉 README.full.md](README.full.md).
-
----
-
-## 🎥 Xem Demo Video Hoàn Thiện
-
-Toàn bộ video dưới đây được tạo **100% tự động** từ kịch bản text — Voice TTS + Visuals HTML/CSS + Hiệu ứng SFX/BGM, không qua bước edit video thủ công:
-
-| 🕸️ Demo CodeGraph | 🖥️ Demo OpenScreen |
-| :---: | :---: |
-| [![CodeGraph Demo](https://img.youtube.com/vi/X8P_5tsHy4o/0.jpg)](https://youtube.com/shorts/X8P_5tsHy4o) | [![OpenScreen Demo](https://img.youtube.com/vi/5noesbFXK0k/0.jpg)](https://youtube.com/shorts/5noesbFXK0k) |
-| [📺 Xem Shorts](https://youtube.com/shorts/X8P_5tsHy4o) | [📺 Xem Shorts](https://youtube.com/shorts/5noesbFXK0k) |
-
-🔗 Xem thêm tại: [Facebook Reels](https://www.facebook.com/reel/2549425188850979) · [TikTok @dongphuongman](https://www.tiktok.com/@dongphuongman/video/7661226482458561799)
-
----
+> 💡 **Bắt đầu trong 5 phút:** làm theo mục [🚀 Bắt đầu nhanh](#-bắt-đầu-nhanh-3-bước) bên dưới — không cần API key nhờ Edge TTS miễn phí mặc định.
 
 ## ✨ Điểm nổi bật
 
-- ⚡ **Tự động hóa toàn diện**: Từ URL bài báo hoặc file `.txt`/`.md` → Kịch bản → Giọng đọc (TTS) → HTML Motion Graphics → Ghép âm thanh & SFX → Render file MP4 1080x1920 60FPS.
-- 🎙️ **Voice miễn phí 100% (Edge TTS)**: Tích hợp sẵn giọng đọc tiếng Việt của Microsoft Edge, **không tốn tiền, không cần API Key**. Đồng thời hỗ trợ **LucyLab** (voice cloning tiếng Việt kèm SRT), **Vbee** (chuẩn giọng tin tức Việt Nam) và **ElevenLabs** (đa ngôn ngữ cao cấp).
+- ⚡ **Tự động hóa toàn diện**: Từ URL bài báo hoặc file `.txt`/`.md` → Kịch bản → Giọng đọc (TTS) → HTML Motion Graphics → Ghép âm thanh & SFX → Render file MP4 1080x1920 (mặc định 30FPS) + bản nén nhẹ `video.tiktok.mp4` đăng trực tiếp.
+- 🎙️ **Voice miễn phí 100% (Edge TTS)**: Tích hợp sẵn giọng đọc tiếng Việt của Microsoft Edge, **không tốn tiền, không cần API Key**. Đồng thời hỗ trợ **LucyLab** (voice cloning tiếng Việt kèm SRT), **Vbee** (chuẩn giọng tin tức Việt Nam), **VieNeu** (giọng Việt tự nhiên + cloning) và **ElevenLabs** (đa ngôn ngữ cao cấp).
 - 🎨 **HTML-to-Video Engine (HyperFrames)**: Layout video được viết bằng HTML + CSS + GSAP animation. Dễ dàng can thiệp, tuỳ biến font chữ, màu sắc thương hiệu như lập trình web.
-- 🤖 **Thiết kế riêng cho AI Coding Agents**: Tối ưu sẵn cho **Google Antigravity IDE** (`.agents/skills`) và **Claude Code** (`.claude/skills`) qua lệnh `/create-news-video`. Bạn chỉ cần đưa URL bài báo hoặc file `.txt`, AI sẽ tự đọc hiểu, tóm tắt, chọn template đồ họa và chạy pipeline tạo video trọn gói từ A đến Z.
-- 📐 **6 Template dựng sẵn linh hoạt**:
-  - 🚨 `breaking-news`: Tin nóng, sự kiện giật gân
-  - 📊 `stat-callout`: Nhấn mạnh số liệu, biểu đồ
-  - 🔀 `split-screen`: So sánh 2 đối tượng hoặc chèn ảnh minh họa bài viết
-  - 💬 `quote-card`: Trích dẫn phát biểu, châm ngôn
-  - 📋 `listicle`: Danh sách điểm tin, bảng xếp hạng
-  - 🔢 `big-number`: Số liệu thống kê ấn tượng
+- 🤖 **Thiết kế riêng cho AI Coding Agents**: Tối ưu sẵn cho **Claude Code** (`.claude/skills`), **Codex** (`.agents/skills`), **OpenClaw** (`skills/` + `~/.openclaw/skills`) và **Hermes** (`~/.hermes-dev/skills`) qua lệnh `/create-news-video`. Bạn chỉ cần đưa URL bài báo hoặc file `.txt`, AI sẽ tự đọc hiểu, tóm tắt, chọn template đồ họa và chạy pipeline tạo video trọn gói từ A đến Z.
+- 📐 **6 Template dựng sẵn linh hoạt** (đặt trong `script.json` → `scenes[].templateData.template`):
+
+| Template | Dùng khi nào |
+| :--- | :--- |
+| `hook` *(bắt buộc scene đầu)* | Tin nóng, claim/số gây tò mò + ảnh nền Ken Burns |
+| `stat-hero` (`value` + `label`) | Nhấn mạnh 1 con số: star, %, giá, phiên bản |
+| `comparison` (`left`/`right` + `winner`) | So sánh 2 đối tượng, trước/sau, A vs B |
+| `callout` (`statement` + `tag`) | Trích dẫn phát biểu, cảnh báo, kết luận chốt |
+| `feature-list` (`title` + 1–4 `bullets`) | Danh sách điểm tin, tính năng, bảng xếp hạng |
+| `outro` *(bắt buộc scene cuối)* | CTA + tên kênh + nguồn + TikTok follow card |
 
 ---
 
@@ -59,13 +44,16 @@ Toàn bộ video dưới đây được tạo **100% tự động** từ kịch 
 Dự án sử dụng cơ chế **Agentic Video Generation**:
 - **Công cụ bắt buộc**: **Node.js 22+** và **FFmpeg** trên máy.
 - **AI Coding Agent (Khuyên dùng để tự động hoá 100%)**:
-  - 🪐 **[Antigravity IDE](https://antigravity.google)** — AI IDE của Google DeepMind.
+  - 🪐 **[Google Antigravity IDE](https://antigravity.google)** — AI IDE của Google DeepMind.
   - 🧠 **[Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code)** — Agentic CLI của Anthropic.
-  - Hoặc bất kỳ AI tool nào khác (Cursor, Codex, Windsurf) thông qua kịch bản JSON.
+  - 🐙 **[OpenClaw](https://openclaw.ai)** — AI assistant đa kênh.
+  - 🔮 **[Hermes](https://github.com/anthropics/hermes)** — Agentic CLI của Anthropic.
+  - 💻 **[Codex](https://openai.com/codex)** — CLI coding agent của OpenAI.
+  - Hoặc bất kỳ AI tool nào khác (Cursor, Windsurf) thông qua kịch bản JSON.
 
 ```bash
-# Clone repository
-git clone https://github.com/dongphuongman/hyframe-video.git
+# Clone repository (thay <tài-khoản-của-bạn> bằng GitHub của bạn)
+git clone https://github.com/<tài-khoản-của-bạn>/auto-video-gen.git
 cd auto-video-gen
 
 # Cài đặt dependencies
@@ -96,7 +84,7 @@ cp .env.example .env.local
 ##### 👉 Với Google Antigravity IDE
 Mở project trong Antigravity IDE, tại khung chat gõ lệnh:
 ```text
-/create-news-video https://github.com/dongphuongman/auto-compare-video
+/create-news-video https://github.com/multica-ai/multica
 ```
 
 ##### 👉 Với Anthropic Claude Code
@@ -104,7 +92,28 @@ Mở terminal tại thư mục dự án và chạy:
 ```bash
 claude
 # Trong màn hình tương tác Claude Code, gõ:
-/create-news-video https://github.com/dongphuongman/auto-compare-video
+/create-news-video https://github.com/multica-ai/multica
+```
+
+##### 👉 Với OpenClaw
+```bash
+openclaw
+# Trong chat, gõ:
+/create-news-video https://github.com/multica-ai/multica
+```
+
+##### 👉 Với Hermes
+```bash
+hermes
+# Trong chat, gõ:
+/create-news-video https://github.com/multica-ai/multica
+```
+
+##### 👉 Với Codex
+```bash
+codex
+# Trong chat, gõ:
+/create-news-video https://github.com/multica-ai/multica
 ```
 
 > 💡 **Quy trình AI tự động xử lý:**
@@ -121,7 +130,7 @@ Nếu không dùng AI, bạn có thể render từ file mẫu hoặc file `scrip
 npm run pipeline -- tests/fixtures/sample-script-no-image.json
 ```
 
-🎉 **Kết quả**: Video thành phẩm sẽ được lưu tại `output/<slug>/<slug>.mp4`.
+🎉 **Kết quả**: Video thành phẩm lưu tại `output/<slug>/` gồm `video.mp4` (bản raw), `video.tiktok.mp4` (bản nén nhẹ để đăng), `voice.mp3` và `caption.txt`.
 
 ---
 
@@ -134,6 +143,8 @@ Chuyển đổi provider linh hoạt trong `.env.local` qua biến `TTS_PROVIDER
 | **Edge TTS** *(Mặc định)* | `TTS_PROVIDER=edge-tts` | **0đ (Miễn phí)** | Không cần API key, hỗ trợ giọng Nam/Nữ tiếng Việt tự nhiên |
 | **LucyLab** | `TTS_PROVIDER=lucylab` | Rẻ (~25k/1M ký tự) | Giọng voice cloning tiếng Việt tự nhiên, tự động kèm SRT subtitle |
 | **Vbee** | `TTS_PROVIDER=vbee` | Trả phí Vbee API | Giọng đọc truyền cảm, chuẩn phong cách phát thanh viên tin tức |
+| **VieNeu** | `TTS_PROVIDER=vieneu` | Trả phí theo ký tự (có trial 7 ngày) | Giọng Việt tự nhiên + voice cloning 3–5s, code-switching Việt–Anh, trả mp3 đồng bộ |
+| **VieNeu local** | `TTS_PROVIDER=vieneu-local` | **0đ (cần `pip install vieneu` + espeak)** | Chạy offline 100% trên máy, ~8s/scene, 25 preset voice + cloning |
 | **ElevenLabs** | `TTS_PROVIDER=elevenlabs` | Trả phí ElevenLabs | Đa ngôn ngữ, chất lượng phòng thu điện ảnh, tuỳ biến cao |
 
 ---
@@ -144,6 +155,12 @@ Chuyển đổi provider linh hoạt trong `.env.local` qua biến `TTS_PROVIDER
 # Chạy toàn bộ pipeline (TTS + Render visuals + Audio Mix)
 npm run pipeline -- output/<slug>/script.json
 
+# Preview nhanh (~3x, chất lượng thấp để kiểm tra layout)
+npm run pipeline -- output/<slug>/script.json --draft
+
+# Gắn brand của bạn mà không cần sửa .env (hoặc --no-branding để ẩn hẳn)
+npm run pipeline -- output/<slug>/script.json --handle @kenhcuaban --display-name "Kênh Của Bạn"
+
 # Chỉ render lại hình ảnh (giữ nguyên voice đã tạo, tiết kiệm thời gian)
 npm run rerender -- output/<slug>
 
@@ -151,58 +168,31 @@ npm run rerender -- output/<slug>
 npm test
 ```
 
+> 💡 **Branding TikTok** (follow card + handle trong video) cấu hình trong `.env.local`: `TIKTOK_DISPLAY_NAME`, `TIKTOK_HANDLE`, `TIKTOK_FOLLOWERS`, `TIKTOK_BRANDING` (`false` = ẩn hẳn).
+
 ---
 
 ## 📂 Cấu trúc thư mục dự án
 
 ```text
 auto-video-gen/
-├── .claude/skills/        # Claude Code skill tạo kịch bản tự động
+├── .claude/skills/        # Claude Code skill
+├── .agents/skills/         # Codex + OpenClaw skill (generic)
+├── skills/                 # OpenClaw workspace skill (highest priority)
 ├── src/
 │   ├── config.ts          # Đọc & validate biến môi trường (.env)
 │   ├── pipeline.ts        # Pipeline chính: TTS -> HyperFrames -> FFmpeg
 │   ├── schema.ts          # Zod schema định nghĩa cấu trúc kịch bản video
 │   ├── render/            # Template HTML/CSS/GSAP & HyperFrames composer
-│   ├── tts/               # Bộ kết nối TTS (Edge TTS, Vbee, ElevenLabs)
-│   └── audio/             # Ghép âm thanh, SFX, căn chỉnh timing bằng FFmpeg
+│   ├── tts/               # Bộ kết nối TTS (Edge, LucyLab, Vbee, VieNeu, ElevenLabs)
+│   └── assets/            # Audio/video tools, image fetcher, SFX
 ├── tests/                 # Unit tests (Vitest)
 ├── output/                # Thư mục lưu video thành phẩm theo từng slug
-├── README.full.md         # 📖 Tài liệu hướng dẫn chi tiết toàn bộ dự án
-└── README.en.md           # 🇬🇧 English Documentation
+└── README.md              # 📖 Tài liệu duy nhất của dự án
 ```
 
 ---
 
-## 📖 Tài liệu chuyên sâu
-
-Để tìm hiểu chi tiết hơn, vui lòng xem [**README.full.md**](README.full.md):
-- [Cấu trúc chi tiết của file kịch bản `script.json`](README.full.md#-cấu-trúc-scriptjson)
-- [Hướng dẫn tùy biến màu sắc, font chữ và animation CSS](README.full.md#-tùy-biến-giao-diện-theme--css)
-- [Bảng ước tính chi phí chi tiết](README.full.md#-ước-tính-chi-phí)
-- [Bảng tra cứu và xử lý sự cố (Troubleshooting)](README.full.md#-xử-lý-sự-cố-thường-gặp)
-- [Giải đáp các câu hỏi thường gặp (FAQ)](README.full.md#-faq)
-
----
-
-## 💬 Cộng đồng & Các mẫu tạo video khác
-
-Xem các mẫu tạo video khác tại:
-
-- Link repo tạo video từ 1 chủ đề với Remotion: 🔗 [github.com/dongphuongman/remotion-dongit-template](https://github.com/dongphuongman/remotion-dongit-template)
-- Link tạo video so sánh kiến thức: 🔗 [github.com/dongphuongman/auto-compare-video](https://github.com/dongphuongman/auto-compare-video)
-
-Mình tạo nhóm này cho các bạn trao đổi về Làm Video với AI nhé.  
-Với các repo mình công khai, có vướng mắc mình sẽ giải đáp cho các bạn.
-
-- 👥 Nhóm trên Facebook: [facebook.com/groups/1010029065373486](https://www.facebook.com/groups/1010029065373486/)
-- 👥 Nhóm trên Zalo: [zalo.me/g/8bfeotyh5ewtkzxmp5gt](https://zalo.me/g/8bfeotyh5ewtkzxmp5gt)
-
-Nếu hữu ích với các bạn thì cho mình 1 star GitHub nhé 🌟
-
----
-
-## 📜 License & Lời cảm ơn
+## 📜 License 
 
 - Dự án phát hành theo giấy phép [MIT](LICENSE).
-- Dự án là bản fork và phát triển mở rộng từ tác phẩm gốc của tác giả [Ho Quang Hai](https://github.com/hoquanghai/Auto-Create-Video).
-- Bản cập nhật & duy trì bởi Đông Mẫn Phương.

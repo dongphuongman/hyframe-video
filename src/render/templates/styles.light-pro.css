@@ -140,6 +140,19 @@ html, body {
 @keyframes kb-pan-left  { from { transform: scale(1.15) translateX(4%); } to { transform: scale(1.15) translateX(-4%); } }
 @keyframes kb-pan-right { from { transform: scale(1.15) translateX(-4%); } to { transform: scale(1.15) translateX(4%); } }
 
+/* Photo background — blurred cover fill + sharp contain layer.
+   Landscape og:images would lose ~70% to `cover` in 9:16; the blur layer
+   carries ambient color while the contain layer shows the FULL image. */
+.bg-photo-blur { filter: blur(60px) brightness(0.6); transform: scale(1.15); }
+.bg-photo-main {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; z-index: 1;
+}
+.bg-photo-main.kb-zoom-in    { animation: kb-zoom-in    var(--scene-dur) linear forwards; }
+.bg-photo-main.kb-zoom-out   { animation: kb-zoom-out   var(--scene-dur) linear forwards; }
+.bg-photo-main.kb-pan-left  { animation: kb-pan-left  var(--scene-dur) linear forwards; }
+.bg-photo-main.kb-pan-right { animation: kb-pan-right var(--scene-dur) linear forwards; }
+
 /* Gradient backgrounds — same class names as dark-neon (html-composer.ts
    emits these literally) but recolored to a clean off-white gradient with
    faint pastel glow blobs instead of neon orbs on navy. */

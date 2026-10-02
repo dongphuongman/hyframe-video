@@ -23,6 +23,16 @@ describe("fetchImage", () => {
     expect(existsSync(out)).toBe(true);
   });
 
+  it("corrects extension from content-type (PNG served as bg.jpg)", async () => {
+    const TINY_PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    nock("https://example.com").get("/og")
+      .reply(200, TINY_PNG, { "content-type": "image/png" });
+    const result = await fetchImage("https://example.com/og", join(tmp, "images", "bg"));
+    expect(result.success).toBe(true);
+    expect(result.path).toBe(join(tmp, "images", "bg.png"));
+    expect(existsSync(join(tmp, "images", "bg.png"))).toBe(true);
+  });
+
   it("returns failure on 404", async () => {
     nock("https://example.com").get("/missing.jpg").reply(404);
     const result = await fetchImage("https://example.com/missing.jpg", join(tmp, "x.jpg"));

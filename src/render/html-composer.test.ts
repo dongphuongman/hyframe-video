@@ -46,9 +46,13 @@ describe("composeHtml", () => {
     expect(html).toContain("iPhone 17");                // headline content
     expect(html).toContain("Camera 200MP!");            // subhead content
 
-    // Image background (hook has bgSrc + bgImageRelPath provided)
-    expect(html).toContain('class="bg kb-zoom-in"');
+    // Image background (hook has bgSrc + bgImageRelPath provided):
+    // blurred cover fill + sharp contain layer showing the FULL image
+    expect(html).toContain('class="bg bg-photo-blur"');
+    expect(html).toContain('class="bg-photo-main kb-zoom-in"');
     expect(html).toContain("background-image: url('images/bg.jpg')");
+    // Ken Burns duration var is set per scene (was missing → KB never ran)
+    expect(html).toMatch(/style="--scene-dur: [\d.]+s"/);
 
     // ── Body templates ─────────────────────────────────────────
     // body-1: stat-hero
@@ -84,8 +88,7 @@ describe("composeHtml", () => {
     expect(html).toContain("fonts.googleapis.com");
   });
 
-  it("falls back to gradient when bgImageRelPath is null", () => {
-    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-with-image.json", "utf8")) as Script;
+  it("falls back to gradient when bgImageRelPath is null", () => {    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-with-image.json", "utf8")) as Script;
     const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 5 }));
     const html = composeHtml({
       script,
@@ -97,5 +100,39 @@ describe("composeHtml", () => {
     // Hook scene with bgSrc but no bgImageRelPath → gradient fallback
     expect(html).toContain('class="bg gradient-news-dark"');
     expect(html).not.toContain("background-image: url");
+  });
+
+  it("hides TikTok card + handle when branding is off", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-with-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 5 }));
+    const html = composeHtml({
+      script,
+      sceneAudio,
+      gapSec: 0.3,
+      bgImageRelPath: null,
+      audioRelPath: "voice.mp3",
+      tiktok: { displayName: "X", handle: "@x", followers: "0", branding: false },
+    });
+    expect(html).not.toContain('<div id="tt-card"');
+    expect(html).not.toContain('class="brand-shell-handle"');
+    expect(html).not.toContain('class="brand-shell-header"');
+    // Outro content itself stays (CTA + channel + source come from script, not branding)
+    expect(html).toContain('class="out-channel"');
+    expect(html).toContain('class="out-source"');
+  });
+
+  it("renders custom handle when provided", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-with-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 5 }));
+    const html = composeHtml({
+      script,
+      sceneAudio,
+      gapSec: 0.3,
+      bgImageRelPath: null,
+      audioRelPath: "voice.mp3",
+      tiktok: { displayName: "My Brand", handle: "@mybrand", followers: "10k", branding: true },
+    });
+    expect(html).toContain("@mybrand");
+    expect(html).toContain('<div id="tt-card"');
   });
 });

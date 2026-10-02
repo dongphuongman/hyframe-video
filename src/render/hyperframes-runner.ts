@@ -6,10 +6,14 @@ export interface RenderArgs {
   outputPath: string;      // path for .mp4
   fps?: number;            // default 30
   quality?: "draft" | "standard" | "high"; // default "standard"
+  /** Encoder CRF override (lower = bigger/better). Passed as --crf. */
+  crf?: number;
+  /** Parallel render workers. 0/undefined = hyperframes auto. Passed as --workers. */
+  workers?: number;
 }
 
 export async function renderWithHyperframes(args: RenderArgs): Promise<void> {
-  const { compositionDir, outputPath, fps = 30, quality = "standard" } = args;
+  const { compositionDir, outputPath, fps = 30, quality = "standard", crf, workers } = args;
 
   const spawnArgs = [
     "hyperframes",
@@ -22,6 +26,15 @@ export async function renderWithHyperframes(args: RenderArgs): Promise<void> {
     "--quality",
     quality,
   ];
+
+  if (crf !== undefined) {
+    spawnArgs.push("--crf", String(crf));
+  }
+  if (workers !== undefined && workers > 0) {
+    spawnArgs.push("--workers", String(workers));
+  }
+
+  const startedAt = Date.now();
 
   await new Promise<void>((resolve, reject) => {
     const proc = spawn("npx", spawnArgs, {
@@ -46,5 +59,5 @@ export async function renderWithHyperframes(args: RenderArgs): Promise<void> {
     });
   });
 
-  log.info(`Rendered: ${outputPath}`);
+  log.info(`Rendered: ${outputPath} (${((Date.now() - startedAt) / 1000).toFixed(0)}s, fps=${fps}, quality=${quality})`);
 }

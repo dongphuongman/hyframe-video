@@ -11,11 +11,15 @@ import { indexSfxLibrary, pickSfxForScene, defaultPlayback } from "./assets/sfx-
 import { existsSync } from "node:fs";
 import { composeHtml } from "./render/html-composer.js";
 import { renderWithHyperframes } from "./render/hyperframes-runner.js";
+import { compressForTiktok, formatMB } from "./assets/video-tools.js";
 import { log } from "./utils/logger.js";
 
-const TOTAL_STEPS = 8;
-const DURATION_MIN_SEC = 48;
+const TOTAL_STEPS = 9;
 const DURATION_MAX_SEC = 72;
+// VieNeu local reads ~30% faster than Edge/LucyLab, so the same word count
+// yields a shorter video — lower the min-duration warning accordingly.
+const DURATION_MIN_SEC_DEFAULT = 48;
+const DURATION_MIN_SEC_VIENEU_LOCAL = 38;
 const SCENE_GAP_SEC = 0.3;
 /**
  * Extra seconds added to the outro scene visual duration AFTER the voice ends.
@@ -40,8 +44,33 @@ const HYPERFRAMES_CONFIG = {
   },
 };
 
-export async function runPipeline(scriptPath: string): Promise<void> {
+export interface PipelineOptions {
+  /** Override TIKTOK_HANDLE (e.g. --handle @mybrand). */
+  handle?: string;
+  /** Override TIKTOK_DISPLAY_NAME. */
+  displayName?: string;
+  /** Override TIKTOK_FOLLOWERS. */
+  followers?: string;
+  /** Hide TikTok follow card + handle (--no-branding). Overrides TIKTOK_BRANDING. */
+  branding?: boolean;
+  /** Override RENDER_QUALITY (--draft = fast preview). */
+  quality?: "draft" | "standard" | "high";
+  /** Override VIDEO_FPS. */
+  fps?: number;
+  /** Skip the TikTok compress step (--no-compress). Overrides TIKTOK_COMPRESS. */
+  compress?: boolean;
+}
+
+export async function runPipeline(scriptPath: string, opts: PipelineOptions = {}): Promise<void> {
   const cfg = loadConfig();
+  // CLI overrides win over env
+  if (opts.handle !== undefined) cfg.tiktok.handle = opts.handle;
+  if (opts.displayName !== undefined) cfg.tiktok.displayName = opts.displayName;
+  if (opts.followers !== undefined) cfg.tiktok.followers = opts.followers;
+  if (opts.branding !== undefined) cfg.tiktok.branding = opts.branding;
+  if (opts.quality !== undefined) cfg.renderQuality = opts.quality;
+  if (opts.fps !== undefined) cfg.videoFps = opts.fps;
+  if (opts.compress !== undefined) cfg.tiktokCompress = opts.compress;
   const outputDir = dirname(scriptPath);
   log.info(`Output directory: ${outputDir}`);
 
@@ -54,6 +83,8 @@ export async function runPipeline(scriptPath: string): Promise<void> {
       cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
       : cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
       : cfg.ttsProvider === "elevenlabs" ? cfg.elevenlabsVoiceId!
+      : cfg.ttsProvider === "vieneu" ? cfg.vieneuVoiceId
+      : cfg.ttsProvider === "vieneu-local" ? cfg.vieneuLocalVoice
       : cfg.vbeeVoiceCode;
   }
   const script: Script = ScriptSchema.parse(raw);
@@ -65,7 +96,9 @@ export async function runPipeline(scriptPath: string): Promise<void> {
 
   // STEP 3 + 4 in parallel
   log.step(3, TOTAL_STEPS, "Fetch og:image (parallel) + Step 4 TTS");
-  const imgPath = join(outputDir, "images", "bg.jpg");
+  // Note: fetchImage corrects the extension from content-type
+  // (e.g. "bg" request may land as "images/bg.png") — use the returned path.
+  const imgPath = join(outputDir, "images", "bg");
   const imgPromise = fetchImage(script.metadata.source.image, imgPath);
 
   // STEP 4
@@ -104,8 +137,8 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   ]);
 
   let bgImageRelPath: string | null = null;
-  if (imgResult.success) {
-    bgImageRelPath = "images/bg.jpg";
+  if (imgResult.success && imgResult.path) {
+    bgImageRelPath = "images/" + basename(imgResult.path);
   } else {
     log.warn(`Background image fetch failed: ${imgResult.reason} → using gradient fallback`);
   }
@@ -176,8 +209,9 @@ export async function runPipeline(scriptPath: string): Promise<void> {
 
   const totalAudioSec = await getDurationSec(voiceMp3);
   log.info(`  voice.mp3 total: ${totalAudioSec.toFixed(2)}s`);
-  if (totalAudioSec < DURATION_MIN_SEC || totalAudioSec > DURATION_MAX_SEC) {
-    log.warn(`Total duration ${totalAudioSec.toFixed(1)}s outside [${DURATION_MIN_SEC}, ${DURATION_MAX_SEC}]s tolerance — proceeding anyway`);
+  const durationMinSec = cfg.ttsProvider === "vieneu-local" ? DURATION_MIN_SEC_VIENEU_LOCAL : DURATION_MIN_SEC_DEFAULT;
+  if (totalAudioSec < durationMinSec || totalAudioSec > DURATION_MAX_SEC) {
+    log.warn(`Total duration ${totalAudioSec.toFixed(1)}s outside [${durationMinSec}, ${DURATION_MAX_SEC}]s tolerance — proceeding anyway`);
   }
 
   // STEP 6 — Compose HTML + write hyperframes project files
@@ -194,17 +228,22 @@ export async function runPipeline(scriptPath: string): Promise<void> {
     throw new Error(`No bundled avatar found. Place an image at assets/avatar.{jpg,png,webp}`);
   };
   const bundledAvatar = findBundledAvatar();
-  const ttAvatarExt = bundledAvatar.split(".").pop()!.toLowerCase();
-  const ttAvatarFile = `tiktok-avatar.${ttAvatarExt}`;
-  const ttAvatarOut = join(outputDir, ttAvatarFile);
+  const bundledExt = bundledAvatar.split(".").pop()!.toLowerCase();
+  // Extensionless base — fetchImage appends the real extension from content-type.
+  const ttAvatarBase = join(outputDir, "tiktok-avatar");
+  let ttAvatarFile: string;
   if (cfg.tiktok.avatarUrl) {
-    const r = await fetchImage(cfg.tiktok.avatarUrl, ttAvatarOut);
-    if (!r.success) {
+    const r = await fetchImage(cfg.tiktok.avatarUrl, ttAvatarBase);
+    if (!r.success || !r.path) {
       log.warn(`TikTok avatar download failed: ${r.reason} → falling back to bundled default`);
-      await copyFile(bundledAvatar, ttAvatarOut);
+      ttAvatarFile = `tiktok-avatar.${bundledExt}`;
+      await copyFile(bundledAvatar, join(outputDir, ttAvatarFile));
+    } else {
+      ttAvatarFile = basename(r.path);
     }
   } else {
-    await copyFile(bundledAvatar, ttAvatarOut);
+    ttAvatarFile = `tiktok-avatar.${bundledExt}`;
+    await copyFile(bundledAvatar, join(outputDir, ttAvatarFile));
   }
 
   const html = composeHtml({
@@ -238,14 +277,33 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
 
   // STEP 7
-  log.step(7, TOTAL_STEPS, "Render with hyperframes");
+  log.step(7, TOTAL_STEPS, `Render with hyperframes (fps=${cfg.videoFps}, quality=${cfg.renderQuality}${cfg.videoCrf !== undefined ? `, crf=${cfg.videoCrf}` : ""})`);
   const videoPath = join(outputDir, "video.mp4");
-  await renderWithHyperframes({ compositionDir: outputDir, outputPath: videoPath });
+  await renderWithHyperframes({
+    compositionDir: outputDir,
+    outputPath: videoPath,
+    fps: cfg.videoFps,
+    quality: cfg.renderQuality,
+    crf: cfg.videoCrf,
+    workers: cfg.renderWorkers,
+  });
 
-  // STEP 8
-  log.step(8, TOTAL_STEPS, "Done");
+  // STEP 8 — TikTok-ready compressed copy (crf 28 ≈ 5-8MB for 30s vs ~98MB raw)
+  let tiktokPath: string | null = null;
+  if (cfg.tiktokCompress) {
+    log.step(8, TOTAL_STEPS, `Compress for TikTok (crf=${cfg.tiktokCrf})`);
+    tiktokPath = join(outputDir, "video.tiktok.mp4");
+    const r = await compressForTiktok(videoPath, tiktokPath, cfg.tiktokCrf);
+    log.info(`Compressed: ${formatMB(r.rawBytes)} → ${formatMB(r.outBytes)} (${(r.ratio * 100).toFixed(0)}%) → ${tiktokPath}`);
+  } else {
+    log.step(8, TOTAL_STEPS, "Compress for TikTok (skipped — TIKTOK_COMPRESS=false)");
+  }
+
+  // STEP 9
+  log.step(9, TOTAL_STEPS, "Done");
   console.log("\n=== Result ===");
   console.log(`Video:  ${videoPath}`);
+  if (tiktokPath) console.log(`TikTok: ${tiktokPath}  (đăng trực tiếp — nhẹ, faststart)`);
   console.log(`Audio:  ${voiceMp3}  (cho CapCut)`);
   console.log(`Script: ${join(outputDir, "script.txt")}  (cho CapCut auto-caption)`);
   console.log(`Tong thoi luong: ${totalAudioSec.toFixed(2)}s`);

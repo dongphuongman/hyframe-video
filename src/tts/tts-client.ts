@@ -18,6 +18,8 @@ import { EdgeTtsClient } from "./edge-tts-client.js";
 import { LucylabClient } from "./lucylab-client.js";
 import { ElevenLabsClient } from "./elevenlabs-client.js";
 import { VbeeClient } from "./vbee-client.js";
+import { VieNeuClient } from "./vieneu-client.js";
+import { VieNeuLocalClient } from "./vieneu-local-client.js";
 
 export function createTtsClient(cfg: Config): TtsClient {
   switch (cfg.ttsProvider) {
@@ -52,6 +54,21 @@ export function createTtsClient(cfg: Config): TtsClient {
         speedRate: cfg.vbeeSpeedRate,
         pollIntervalMs: cfg.vbeePollIntervalMs,
         pollTimeoutMs: cfg.vbeePollTimeoutMs,
+      });
+    case "vieneu":
+      return new VieNeuClient({
+        apiKey: cfg.vieneuApiKey!,
+        voiceId: cfg.vieneuVoiceId,
+        modelId: cfg.vieneuModelId,
+        endpoint: cfg.vieneuEndpoint,
+      });
+    case "vieneu-local":
+      return new VieNeuLocalClient({
+        voice: cfg.vieneuLocalVoice,
+        pythonBin: cfg.vieneuLocalPython,
+        mode: cfg.vieneuLocalMode,
+        precision: cfg.vieneuLocalPrecision,
+        timeoutMs: cfg.vieneuLocalTimeoutMs,
       });
     default: {
       const _never: never = cfg.ttsProvider;

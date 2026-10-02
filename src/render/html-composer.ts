@@ -13,11 +13,12 @@ const GRAIN_OVERLAY_HTML = `<div id="grain-overlay" style="position:absolute;top
 // Vignette — darkens far edges so content doesn't feel like it's floating in a flat void.
 const VIGNETTE_HTML = `<div class="vignette"></div>`;
 
-// Default TikTok config (used if not passed)
+// Default TikTok config (used if not passed) — neutral placeholder, override via env.
 const DEFAULT_TIKTOK: TiktokConfig = {
-  displayName: "ĐôngIT",
-  handle: "@dongphuongman",
-  followers: "2k followers",
+  displayName: "Tin Tức 24h",
+  handle: "@tintuc24h",
+  followers: "1.2M followers",
+  branding: true,
 };
 
 export interface SceneAudio {
@@ -64,8 +65,8 @@ export function composeHtml(args: ComposeArgs): string {
     return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar);
   }).join("\n");
 
-  // Persistent shell — uses tiktok handle in footer
-  const shellHtml = renderShell(script.metadata, tiktok);
+  // Persistent shell — uses tiktok handle in footer (hidden when branding is off)
+  const shellHtml = tiktok.branding ? renderShell(script.metadata, tiktok) : renderShellNoBrand();
 
   const animJs = readFileSync(join(TPL_DIR, "animations.js"), "utf8");
 
@@ -104,6 +105,17 @@ function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string
 <div class="brand-shell-keyword">
   <span>${escapeHtml(domain)}</span>
 </div>
+
+${VIGNETTE_HTML}
+${GRAIN_OVERLAY_HTML}`.trim();
+}
+
+// ── PERSISTENT SHELL (no branding) ─────────────────────────────────────────
+// Keeps vignette + grain so lighting stays consistent, but drops the handle bar.
+function renderShellNoBrand(): string {
+  return `
+<!-- Shell: no-brand (TIKTOK_BRANDING=false) -->
+<div class="shell-bg"></div>
 
 ${VIGNETTE_HTML}
 ${GRAIN_OVERLAY_HTML}`.trim();
@@ -163,9 +175,14 @@ function renderHookInner(td: Extract<TemplateDataType, { template: "hook" }>, bg
   const hasImage = Boolean(td.bgSrc && bgImageRelPath);
   let bgHtml: string;
   if (hasImage) {
-    // Ken Burns image
+    // Landscape og:image in a 9:16 frame: `cover` would crop ~70% of the image.
+    // Instead: blurred cover as ambient fill + sharp `contain` layer showing
+    // the FULL image (standard TV letterbox pattern). Ken Burns runs on the
+    // sharp layer; the blur layer is pre-scaled to hide its soft edges.
     const kbClass = td.kenBurns ?? "zoom-in";
-    bgHtml = `<div class="bg kb-${kbClass}" style="background-image: url('${bgImageRelPath}')"></div>`;
+    const src = escapeHtml(bgImageRelPath!);
+    bgHtml = `<div class="bg bg-photo-blur" style="background-image: url('${src}')"></div>` +
+      `<img class="bg-photo-main kb-${kbClass}" src="${src}" alt="" />`;
   } else {
     bgHtml = `<div class="bg gradient-news-dark"></div>`;
   }
@@ -256,7 +273,8 @@ function renderOutroInner(
   tiktok: TiktokConfig,
   avatarRelPath: string,
 ): string {
-  const ttCard = renderTiktokCard(tiktok, avatarRelPath);
+  // When branding is off, skip the TikTok follow card — outro is just CTA + channel + source.
+  const ttCard = tiktok.branding ? renderTiktokCard(tiktok, avatarRelPath) : "";
   return `
 <div class="layout-outro">
   <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>
@@ -302,7 +320,7 @@ function buildScene(
   return `
 <div class="scene clip" id="scene-${scene.id}"
      data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-active="0"
-     data-layout="${layoutName}">
+     data-layout="${layoutName}" style="--scene-dur: ${duration.toFixed(2)}s">
   ${innerHtml}
 </div>`.trim();
 }
